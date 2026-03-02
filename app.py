@@ -19,6 +19,57 @@ app = Flask(__name__)
 app.config["MAX_CONTENT_LENGTH"] = 16 * 1024 * 1024  # 16 MB upload limit
 
 
+def extract_json(raw):
+    """Try multiple strategies to extract a JSON object/array from an LLM response.
+
+    Returns the parsed dict or list on success, or None if all strategies fail.
+    Strategies tried in order:
+      1. Direct json.loads of the whole string.
+      2. Content inside a ```json ... ``` fenced code block.
+      3. Content inside a plain ``` ... ``` fenced code block.
+      4. The outermost {...} object found by brace counting.
+    """
+    # Strategy 1: direct parse
+    try:
+        return json.loads(raw)
+    except Exception:
+        pass
+
+    # Strategy 2: extract from ```json ... ``` block
+    try:
+        start = raw.index("```json") + 7
+        end = raw.index("```", start)
+        if start < end:
+            return json.loads(raw[start:end])
+    except Exception:
+        pass
+
+    # Strategy 3: extract from ``` ... ``` block (no language label)
+    try:
+        start = raw.index("```") + 3
+        end = raw.index("```", start)
+        if start < end:
+            return json.loads(raw[start:end])
+    except Exception:
+        pass
+
+    # Strategy 4: find the outermost JSON object via brace counting
+    try:
+        brace_start = raw.index("{")
+        depth = 0
+        for i in range(brace_start, len(raw)):
+            if raw[i] == "{":
+                depth += 1
+            elif raw[i] == "}":
+                depth -= 1
+                if depth == 0:
+                    return json.loads(raw[brace_start : i + 1])
+    except Exception:
+        pass
+
+    return None
+
+
 @app.route("/")
 def index():
     return render_template("index.html")
@@ -416,6 +467,10 @@ def generate_midi():
         if base_url:
             completion_params["api_base"] = base_url
 
+        # Request JSON output directly when supported (e.g. Ollama)
+        if provider == "ollama":
+            completion_params["response_format"] = {"type": "json_object"}
+
         response = completion(**completion_params)
         raw = (
             response.choices[0]
@@ -424,27 +479,21 @@ def generate_midi():
             .strip()
         )
 
-        try:
-            midi_data = json.loads(raw)
-        except Exception:
-            try:
-                midi_data = json.loads(
-                    raw[raw.index("```json") + 7 : raw.rindex("```")]
-                )
-            except Exception:
-                print(f"Failed to parse LLM response as JSON. Raw response:\n{raw}")
-                return (
-                    jsonify(
-                        {
-                            "error": (
-                                "The LLM response could not be parsed as JSON. "
-                                "Try a different model or rephrase your prompt. "
-                                f"Raw response (truncated): {raw[:500]}"
-                            )
-                        }
-                    ),
-                    500,
-                )
+        midi_data = extract_json(raw)
+        if midi_data is None:
+            print(f"Failed to parse LLM response as JSON. Raw response:\n{raw}")
+            return (
+                jsonify(
+                    {
+                        "error": (
+                            "The LLM response could not be parsed as JSON. "
+                            "Try a different model or rephrase your prompt. "
+                            f"Raw response (truncated): {raw[:500]}"
+                        )
+                    }
+                ),
+                500,
+            )
 
         # Ensure midi_data is a list
         if not isinstance(midi_data, list):
@@ -505,7 +554,7 @@ def generate_midi():
         )
 
     except Exception as e:
-        print(f"Error: {e}")
+        print(f"Error in generate_midi: {type(e).__name__}: {e}")
         return jsonify({"error": str(e)}), 500
 
 
