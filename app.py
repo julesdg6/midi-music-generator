@@ -34,6 +34,57 @@ def serve_sample(filename):
     )
 
 
+@app.route("/test_llm", methods=["POST"])
+def test_llm():
+    data = request.json
+    llm_settings = data.get("llm_settings", {})
+
+    api_key = llm_settings.get("apiKey")
+    model_name = llm_settings.get("modelName")
+    provider = llm_settings.get("provider", "gemini")
+    base_url = llm_settings.get("baseUrl", "").strip()
+
+    if not model_name:
+        return jsonify({"success": False, "error": "Model name is required."}), 400
+
+    if not api_key and provider != "ollama":
+        return jsonify({"success": False, "error": "API key is required."}), 400
+
+    if provider == "gemini":
+        model_name = f"gemini/{model_name}"
+    elif provider == "anthropic":
+        model_name = f"anthropic/{model_name}"
+    elif provider == "ollama":
+        model_name = f"ollama/{model_name}"
+        if not base_url:
+            base_url = "http://localhost:11434"
+    else:
+        model_name = f"openai/{model_name}"
+
+    try:
+        completion_params = {
+            "model": model_name,
+            "messages": [
+                {"role": "user", "content": "Reply with exactly one word: OK"}
+            ],
+        }
+        if api_key:
+            completion_params["api_key"] = api_key
+        if base_url:
+            completion_params["api_base"] = base_url
+
+        response = completion(**completion_params)
+        reply = response.choices[0].message.content.strip()
+        return jsonify(
+            {
+                "success": True,
+                "message": f"Connection successful. Model replied: {reply}",
+            }
+        )
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
 @app.route("/generate_midi", methods=["POST"])
 def generate_midi():
     data = request.json
