@@ -1,0 +1,7 @@
+services:
+  midi-music-generator:
+    build: .
+    image: julesdg6/midi-music-generator
+    ports:
+      - "5001:5001"
+    restart: unless-stopped
