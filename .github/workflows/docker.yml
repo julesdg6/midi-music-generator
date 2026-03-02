@@ -19,12 +19,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Log in to Docker Hub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
         with:
@@ -37,7 +31,6 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: |
-            julesdg6/midi-music-generator
             ghcr.io/julesdg6/midi-music-generator
           tags: |
             type=raw,value=latest,enable={{is_default_branch}}
