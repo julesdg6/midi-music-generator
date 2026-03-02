@@ -2,8 +2,7 @@ FROM python:3.12-slim
 
 WORKDIR /app
 
-RUN apt-get update 
-RUN apt-get install -y curl fluidsynth
+RUN apt-get update && apt-get install -y --no-install-recommends curl fluidsynth && rm -rf /var/lib/apt/lists/*
 
 RUN curl 'https://raw.githubusercontent.com/spessasus/SpessaSynth/master/soundfonts/GeneralUserGS.sf3' -o GeneralUserGS.sf3
 

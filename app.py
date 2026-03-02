@@ -1,25 +1,22 @@
+import io
+import json
 import os
 import subprocess
-import json
-import io
+import tempfile
 
-# import mido
-from litellm import completion
 from flask import (
     Flask,
+    jsonify,
     render_template,
     request,
-    jsonify,
     send_file,
     send_from_directory,
 )
+from litellm import completion
 from midiutil import MIDIFile
 
 app = Flask(__name__)
-
-# --- CONFIGURATION ---
-# Optional: Set a default API key via environment variable (can be overridden by client)
-example_1 = open("jazz.json", "r").read()
+app.config["MAX_CONTENT_LENGTH"] = 16 * 1024 * 1024  # 16 MB upload limit
 
 
 @app.route("/")
@@ -60,8 +57,6 @@ def generate_midi():
     # Construct full model name with provider prefix
     if provider == "gemini":
         model_name = f"gemini/{model_name}"
-    elif provider == "openai":
-        model_name = model_name
     elif provider == "anthropic":
         model_name = f"anthropic/{model_name}"
     else:
@@ -347,10 +342,6 @@ def generate_midi():
         ]
     }
     """
-        # + "\n***\n"
-        # + "### Example Output for 'jazz music':\n"
-        # + example_1
-        # + "\n***\n"
     )
 
     try:
@@ -384,7 +375,7 @@ def generate_midi():
 
         # 4. Create MIDI File using MidiUtil
         num_tracks = len(midi_data)
-        MyMIDI = MIDIFile(num_tracks)
+        midi = MIDIFile(num_tracks)
 
         for track_idx, track_data in enumerate(midi_data):
             channel = track_idx
@@ -398,8 +389,8 @@ def generate_midi():
 
             # Set tempo only on the first track
             if track_idx == 0:
-                MyMIDI.addTempo(track_idx, time, tempo)
-            MyMIDI.addProgramChange(track_idx, channel, time, program)
+                midi.addTempo(track_idx, time, tempo)
+            midi.addProgramChange(track_idx, channel, time, program)
 
             for note in track_data.get("notes", []):
                 p = int(note.get("pitch", 60))
@@ -408,11 +399,11 @@ def generate_midi():
                 # Sanitize pitch (0-127)
                 p = max(0, min(127, p))
 
-                MyMIDI.addNote(track_idx, channel, p, t, d, volume)
+                midi.addNote(track_idx, channel, p, t, d, volume)
 
         # 5. Save to memory buffer
         mem_file = io.BytesIO()
-        MyMIDI.writeFile(mem_file)
+        midi.writeFile(mem_file)
         mem_file.seek(0)
 
         return send_file(
@@ -428,61 +419,6 @@ def generate_midi():
 
 
 def separate_channels_and_render(input_midi, soundfont, output_wav):
-
-    # mid = mido.MidiFile(input_midi)
-    # cleaned_mid = mido.MidiFile()
-    # cleaned_mid.ticks_per_beat = mid.ticks_per_beat
-
-    # print("Remapping channels to fix collision...")
-
-    # # We skip Channel 9 (Index 9 is Channel 10 in MIDI speak)
-    # # because that is reserved for DRUMS only.
-    # available_channels = [ch for ch in range(16) if ch != 9]
-
-    # current_channel_index = 0
-
-    # for i, track in enumerate(mid.tracks):
-    #     new_track = mido.MidiTrack()
-
-    #     # Check if track has notes (ignore empty metadata tracks)
-    #     has_notes = any(msg.type == "note_on" for msg in track)
-
-    #     # Assign a unique channel to this track if it has notes
-    #     # If it's a metadata track, we don't assign a channel (remains 0 but unused)
-    #     track_channel = 0
-    #     if has_notes:
-    #         if current_channel_index < len(available_channels):
-    #             track_channel = available_channels[current_channel_index]
-    #             current_channel_index += 1
-    #         else:
-    #             print(f"Warning: Too many tracks! Track {i} sharing channel.")
-    #             track_channel = 0  # Fallback
-
-    #     for msg in track:
-    #         # COPY the message so we don't modify the original object in memory
-    #         new_msg = msg.copy()
-
-    #         # If it is a channel message, Force the new channel
-    #         if not new_msg.is_meta:
-    #             if hasattr(new_msg, "channel"):
-    #                 new_msg.channel = track_channel
-
-    #         # Still filter out Bank Selects (CC 0/32) just in case
-    #         if new_msg.type == "control_change" and new_msg.control in [0, 32]:
-    #             continue
-
-    #         new_track.append(new_msg)
-
-    #     cleaned_mid.tracks.append(new_track)
-
-    # # Save the repaired MIDI
-    # temp_midi = tmpfile(suffix=".mid", delete=False).name
-    # cleaned_mid.save(temp_midi)
-    # print(
-    #     f"Channels remapped. Track 1->Ch{available_channels[0]}, Track 2->Ch{available_channels[1]}, etc."
-    # )
-
-    # Render
     command = [
         "fluidsynth",
         "-ni",
@@ -511,24 +447,36 @@ def separate_channels_and_render(input_midi, soundfont, output_wav):
 
 @app.route("/convert_midi_to_wav", methods=["POST"])
 def convert_midi_to_wav():
-
+    tmp_midi_path = None
+    tmp_wav_path = None
     try:
-        # Get the MIDI file from the request
-        midi_file = request.files["midi_file"]
-        midi_data = midi_file.read()
+        midi_file = request.files.get("midi_file")
+        if midi_file is None:
+            return jsonify({"error": "No MIDI file provided"}), 400
 
-        open("/tmp/test.mid", "wb").write(midi_data)
+        midi_bytes = midi_file.read()
 
-        # Convert MIDI to WAV
+        # Write MIDI data to a unique temporary file
+        with tempfile.NamedTemporaryFile(suffix=".mid", delete=False) as tmp_midi:
+            tmp_midi.write(midi_bytes)
+            tmp_midi_path = tmp_midi.name
+
+        with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp_wav:
+            tmp_wav_path = tmp_wav.name
+
         separate_channels_and_render(
-            input_midi="/tmp/test.mid",
+            input_midi=tmp_midi_path,
             soundfont="GeneralUserGS.sf3",
-            output_wav="/tmp/test.wav",
+            output_wav=tmp_wav_path,
         )
+        # tmp_midi_path is deleted by separate_channels_and_render
 
-        # Return the WAV file
+        # Read WAV into memory so the temp file can be removed immediately
+        with open(tmp_wav_path, "rb") as f:
+            wav_data = io.BytesIO(f.read())
+
         return send_file(
-            "/tmp/test.wav",
+            wav_data,
             mimetype="audio/wav",
             as_attachment=True,
             download_name="output.wav",
@@ -537,3 +485,8 @@ def convert_midi_to_wav():
     except Exception as e:
         print(f"Error: {e}")
         return jsonify({"error": str(e)}), 500
+    finally:
+        if tmp_midi_path and os.path.exists(tmp_midi_path):
+            os.unlink(tmp_midi_path)
+        if tmp_wav_path and os.path.exists(tmp_wav_path):
+            os.unlink(tmp_wav_path)
