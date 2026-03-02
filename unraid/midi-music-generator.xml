@@ -9,7 +9,7 @@
   <Project>https://github.com/julesdg6/midi-music-generator</Project>
   <Overview>An AI music generator that creates MIDI compositions from text prompts using LLMs. Supports multiple providers including Gemini, OpenAI, and Anthropic.</Overview>
   <Category>MediaApp:Music</Category>
-  <WebUI>http://[IP]:[PORT:5001]/</WebUI>
+  <WebUI>http://[IP]:[PORT:3161]/</WebUI>
   <TemplateURL>https://raw.githubusercontent.com/julesdg6/midi-music-generator/main/unraid/midi-music-generator.xml</TemplateURL>
   <Icon>https://raw.githubusercontent.com/julesdg6/midi-music-generator/main/unraid/mmg.png</Icon>
   <ExtraParams/>
@@ -19,5 +19,5 @@
   <DonateText/>
   <DonateLink/>
   <Description>An AI music generator that creates MIDI compositions from text prompts using LLMs. Supports multiple providers including Gemini, OpenAI, and Anthropic. Configure your LLM API key directly in the web UI after launching the container.</Description>
-  <Config Name="Web UI Port" Target="5001" Default="5001" Mode="tcp" Description="Port for the web interface." Type="Port" Display="always" Required="true" Mask="false">5001</Config>
+  <Config Name="Web UI Port" Target="3161" Default="3161" Mode="tcp" Description="Port for the web interface." Type="Port" Display="always" Required="true" Mask="false">3161</Config>
 </Container>

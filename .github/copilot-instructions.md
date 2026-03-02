@@ -30,10 +30,10 @@ docker-compose.yml
 
 ```bash
 uv sync
-uv run flask run --port=5001
+uv run flask run --port=3161
 ```
 
-The app is then available at `http://localhost:5001`.
+The app is then available at `http://localhost:3161`.
 
 MIDI-to-WAV conversion requires FluidSynth and `GeneralUserGS.sf3` in the working directory; the Docker image provides both automatically.
 
