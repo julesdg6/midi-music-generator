@@ -72,19 +72,22 @@ docker run -p 5001:5001 midi-music-generator
 
 ### Unraid
 
-#### Option A — Template repository (recommended)
+#### Option A — Install template via CLI (recommended)
 
-While the app is not yet listed in Community Applications, you can add the template manually:
+SSH into your Unraid server and run:
 
-1. In the Unraid web UI, go to **Apps** → **Settings** (gear icon)
-2. Under **Template repositories**, add the following URL on a new line:
-   ```
-   https://raw.githubusercontent.com/julesdg6/midi-music-generator/main/unraid/
-   ```
-3. Click **Save** and wait for the repository to be indexed
-4. Go back to the **Apps** tab and search for **MidiMusicGenerator**
-5. Click **Install**, set your desired port (default: `5001`), and click **Apply**
-6. Open the web UI at `http://<unraid-ip>:5001`
+```bash
+wget -O /boot/config/plugins/dockerMan/templates-user/midi-music-generator.xml \
+  https://raw.githubusercontent.com/julesdg6/midi-music-generator/main/unraid/midi-music-generator.xml
+```
+
+Then, in the Unraid web UI:
+
+1. Go to the **Docker** tab
+2. Click **Add Container**
+3. Select **MidiMusicGenerator** from the template dropdown
+4. Set your desired port (default: `5001`) and click **Apply**
+5. Open the web UI at `http://<unraid-ip>:5001`
 
 #### Option B — Add container manually
 
