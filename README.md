@@ -24,19 +24,13 @@ Instead of text-to-music models, I wanted to experiment with LLMs generating mus
 
 ## Setup
 
-### Docker Hub
-
-```bash
-docker run -d -p 5001:5001 --restart unless-stopped julesdg6/midi-music-generator
-```
-
-Open your browser to `http://localhost:5001`
-
 ### Docker Compose
 
 ```bash
 docker compose up -d
 ```
+
+Open your browser to `http://localhost:3161`
 
 ### Local Development
 
@@ -44,10 +38,10 @@ Requires Python 3.12+ and [uv](https://docs.astral.sh/uv/).
 
 ```bash
 uv sync
-uv run flask run --port=5001
+uv run flask run --port=3161
 ```
 
-Open your browser to `http://localhost:5001`
+Open your browser to `http://localhost:3161`
 
 > **Note:** MIDI-to-WAV conversion requires [FluidSynth](https://www.fluidsynth.org/) and the `GeneralUserGS.sf3` soundfont to be present in the working directory. The Docker image handles both automatically.
 
@@ -67,7 +61,7 @@ Settings are saved in your browser's `localStorage` and are never persisted on t
 
 ```bash
 docker build -t midi-music-generator .
-docker run -p 5001:5001 midi-music-generator
+docker run -p 3161:3161 midi-music-generator
 ```
 
 ### Unraid
@@ -86,25 +80,20 @@ Then, in the Unraid web UI:
 1. Go to the **Docker** tab
 2. Click **Add Container**
 3. Select **MidiMusicGenerator** from the template dropdown
-4. Set your desired port (default: `5001`) and click **Apply**
-5. Open the web UI at `http://<unraid-ip>:5001`
+4. Set your desired port (default: `3161`) and click **Apply**
+5. Open the web UI at `http://<unraid-ip>:3161`
 
-#### Option B — Add container manually
+#### Option B — Build and run via SSH
 
-1. In the Unraid web UI, go to the **Docker** tab
-2. Click **Add Container**
-3. Fill in the following fields:
+SSH into your Unraid server, clone the repository, build and start the container:
 
-   | Field | Value |
-   |---|---|
-   | **Name** | `MidiMusicGenerator` |
-   | **Repository** | `julesdg6/midi-music-generator` |
-   | **Network type** | `bridge` |
-   | **Port mapping** (Host → Container) | `5001` → `5001` |
-   | **Auto-start** | Enabled |
+```bash
+git clone https://github.com/julesdg6/midi-music-generator.git
+cd midi-music-generator
+docker compose up -d
+```
 
-4. Click **Apply** to pull the image and start the container
-5. Open the web UI at `http://<unraid-ip>:5001`
+Open the web UI at `http://<unraid-ip>:3161`
 
 ## Usage
 

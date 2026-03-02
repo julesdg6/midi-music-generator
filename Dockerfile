@@ -14,5 +14,5 @@ RUN uv sync
 
 COPY . /app
 
-EXPOSE 5001
-CMD ["uv", "run", "flask", "run", "--host=0.0.0.0", "--port=5001"]
+EXPOSE 3161
+CMD ["uv", "run", "flask", "run", "--host=0.0.0.0", "--port=3161"]
