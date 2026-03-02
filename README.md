@@ -17,14 +17,37 @@ Instead of text-to-music models, I wanted to experiment with LLMS generating mus
 
 ## Setup
 
-### Local Development
+### Docker Hub
 
 ```bash
-docker build -t midi .
-docker run -p 5001:5001 midi
+docker run -d -p 5001:5001 --restart unless-stopped julesdg6/midi-music-generator
 ```
 
 Open your browser to `http://localhost:5001`
+
+### Docker Compose
+
+```bash
+docker compose up -d
+```
+
+Open your browser to `http://localhost:5001`
+
+### Local Development
+
+```bash
+docker build -t midi-music-generator .
+docker run -p 5001:5001 midi-music-generator
+```
+
+### Unraid
+
+Install via the **Community Applications** plugin:
+
+1. Open the **Apps** tab in Unraid
+2. Search for **MidiMusicGenerator**
+3. Click **Install** and set your desired port (default: `5001`)
+4. Open the web UI at `http://<unraid-ip>:5001`
 
 ## Usage
 
