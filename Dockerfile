@@ -11,7 +11,6 @@ ENV PATH="/root/.local/bin:$PATH"
 COPY pyproject.toml uv.lock .python-version ./
 RUN uv python install
 RUN uv sync
-RUN uv venv
 
 COPY . /app
 
