@@ -1,5 +1,6 @@
 services:
   midi-music-generator:
+    image: ghcr.io/julesdg6/midi-music-generator:latest
     build: .
     ports:
       - "3161:3161"

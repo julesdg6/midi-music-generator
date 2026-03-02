@@ -57,7 +57,13 @@ On first launch, click the **Settings** (⚙) button to configure your LLM provi
 | **Base URL** | (Optional) Override the API endpoint, useful for local models or proxies |
 
 Settings are saved in your browser's `localStorage` and are never persisted on the server.
-### Local Development
+### Docker Run
+
+```bash
+docker run -d -p 3161:3161 ghcr.io/julesdg6/midi-music-generator:latest
+```
+
+### Local Development (build from source)
 
 ```bash
 docker build -t midi-music-generator .

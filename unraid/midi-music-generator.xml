@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <Container version="2">
   <Name>MidiMusicGenerator</Name>
-  <Repository>julesdg6/midi-music-generator</Repository>
-  <Registry>https://hub.docker.com/r/julesdg6/midi-music-generator</Registry>
+  <Repository>ghcr.io/julesdg6/midi-music-generator</Repository>
+  <Registry>https://ghcr.io/julesdg6/midi-music-generator</Registry>
   <Network>bridge</Network>
   <Privileged>false</Privileged>
   <Support>https://github.com/julesdg6/midi-music-generator/issues</Support>
