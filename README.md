@@ -57,6 +57,17 @@ On first launch, click the **Settings** (⚙) button to configure your LLM provi
 | **Base URL** | (Optional) Override the API endpoint, useful for local models or proxies |
 
 Settings are saved in your browser's `localStorage` and are never persisted on the server.
+
+### Recommended Models
+
+| Provider | Recommended Model | Notes |
+| --- | --- | --- |
+| **Gemini** | `gemini-2.0-flash` | Fast and reliable; `gemini-2.5-pro` for highest quality |
+| **OpenAI** | `gpt-4o` | Best results; `gpt-4o-mini` for a cheaper alternative |
+| **Anthropic** | `claude-3-5-sonnet-20241022` | Good balance of speed and quality |
+| **Ollama** | `llama3.1` | Recommended local model; `mistral` is also a good option |
+
+> **Note:** Models must be able to return well-structured JSON. If generation fails or produces no output, try switching to one of the recommended models above.
 ### Docker Run
 
 ```bash
