@@ -375,12 +375,43 @@ def generate_midi():
 
         try:
             midi_data = json.loads(raw)
-        except Exception as e:
-            midi_data = json.loads(raw[raw.index("```json") + 7 : raw.rindex("```")])
+        except Exception:
+            try:
+                midi_data = json.loads(
+                    raw[raw.index("```json") + 7 : raw.rindex("```")]
+                )
+            except Exception:
+                print(f"Failed to parse LLM response as JSON. Raw response:\n{raw}")
+                return (
+                    jsonify(
+                        {
+                            "error": (
+                                "The LLM response could not be parsed as JSON. "
+                                "Try a different model or rephrase your prompt. "
+                                f"Raw response (truncated): {raw[:500]}"
+                            )
+                        }
+                    ),
+                    500,
+                )
 
         # Ensure midi_data is a list
         if not isinstance(midi_data, list):
             midi_data = midi_data.get("tracks", [])
+
+        if not midi_data:
+            print(f"LLM returned no tracks. Raw response:\n{raw}")
+            return (
+                jsonify(
+                    {
+                        "error": (
+                            "The LLM returned no tracks. "
+                            "Try a different model or rephrase your prompt."
+                        )
+                    }
+                ),
+                500,
+            )
 
         # 4. Create MIDI File using MidiUtil
         num_tracks = len(midi_data)
@@ -449,6 +480,7 @@ def separate_channels_and_render(input_midi, soundfont, output_wav):
             print(f"Success! Saved to {output_wav}")
         else:
             print("FluidSynth Error:", result.stderr)
+            raise RuntimeError(f"FluidSynth conversion failed: {result.stderr.strip()}")
     finally:
         if os.path.exists(input_midi):
             os.remove(input_midi)

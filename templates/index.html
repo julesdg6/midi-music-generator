@@ -604,12 +604,10 @@
             <input
               type="text"
               id="modelName"
-              placeholder="gemini-2.5-pro"
+              placeholder="gemini-2.0-flash"
               required
             />
-            <!-- <small id="modelHint"
-              >For Gemini, use format: gemini/model-name</small
-            > -->
+            <small id="modelHint">Recommended: gemini-2.0-flash or gemini-2.5-pro</small>
           </div>
           <div class="form-group" id="apiKeyGroup">
             <label for="apiKey">API Key</label>
@@ -643,7 +641,7 @@
       const DEFAULT_SETTINGS = {
         provider: "gemini",
         baseUrl: "",
-        modelName: "gemini-2.5-pro",
+        modelName: "gemini-2.0-flash",
         apiKey: "",
       };
 
@@ -677,7 +675,7 @@
         const apiKeyGroup = document.getElementById("apiKeyGroup");
         const apiKeyInput = document.getElementById("apiKey");
         const baseUrlInput = document.getElementById("baseUrl");
-        // const modelHint = document.getElementById("modelHint");
+        const modelHint = document.getElementById("modelHint");
 
         if (provider === "ollama" || provider === "custom") {
           baseUrlGroup.style.display = "block";
@@ -686,32 +684,40 @@
             if (!baseUrlInput.value) {
               baseUrlInput.value = "http://localhost:11434";
             }
-            modelInput.placeholder = "llama3";
+            modelInput.placeholder = "llama3.1";
             if (!modelInput.value || modelInput.value.includes("/")) {
-              modelInput.value = "llama3";
+              modelInput.value = "llama3.1";
             }
+            modelHint.textContent = "Recommended: llama3.1 or mistral";
             apiKeyGroup.style.display = "none";
             apiKeyInput.removeAttribute("required");
+          } else {
+            modelHint.textContent = "";
           }
         } else {
           baseUrlGroup.style.display = "none";
           apiKeyGroup.style.display = "block";
           apiKeyInput.setAttribute("required", "required");
           if (provider === "gemini") {
-            modelInput.placeholder = "gemini-2.5-pro";
+            modelInput.placeholder = "gemini-2.0-flash";
             if (!modelInput.value || modelInput.value.includes("/")) {
-              modelInput.value = "gemini-2.5-pro";
+              modelInput.value = "gemini-2.0-flash";
             }
+            modelHint.textContent = "Recommended: gemini-2.0-flash or gemini-2.5-pro";
           } else if (provider === "openai") {
-            modelInput.placeholder = "gpt-4";
+            modelInput.placeholder = "gpt-4o";
             if (modelInput.value && modelInput.value.includes("/")) {
               modelInput.value = "";
             }
+            modelHint.textContent = "Recommended: gpt-4o or gpt-4o-mini";
           } else if (provider === "anthropic") {
             modelInput.placeholder = "claude-3-5-sonnet-20241022";
             if (modelInput.value && modelInput.value.includes("/")) {
               modelInput.value = "";
             }
+            modelHint.textContent = "Recommended: claude-3-5-sonnet-20241022";
+          } else {
+            modelHint.textContent = "";
           }
         }
       }
