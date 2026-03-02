@@ -51,7 +51,8 @@ def generate_midi():
     provider = llm_settings.get("provider", "gemini")
     base_url = llm_settings.get("baseUrl", "").strip()
 
-    if not api_key:
+    # Ollama runs locally and does not require an API key
+    if not api_key and provider != "ollama":
         return (
             jsonify({"error": "API key not provided. Please configure in settings."}),
             400,
@@ -64,6 +65,11 @@ def generate_midi():
         model_name = model_name
     elif provider == "anthropic":
         model_name = f"anthropic/{model_name}"
+    elif provider == "ollama":
+        model_name = f"ollama/{model_name}"
+        # Use default Ollama base URL if none provided
+        if not base_url:
+            base_url = "http://localhost:11434"
     else:
         model_name = "openai/" + model_name
 
@@ -358,8 +364,11 @@ def generate_midi():
         completion_params = {
             "model": model_name,
             "messages": [{"role": "user", "content": prompt}],
-            "api_key": api_key,
         }
+
+        # Only include api_key if provided (Ollama does not require one)
+        if api_key:
+            completion_params["api_key"] = api_key
 
         # Add base_url if provided
         if base_url:

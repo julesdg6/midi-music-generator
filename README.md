@@ -13,7 +13,7 @@ Instead of text-to-music models, I wanted to experiment with LLMS generating mus
 - 🎹 Supports all General MIDI instruments (0-127)
 - 🎼 Multi-track compositions
 - 🔊 MIDI to WAV conversion with FluidSynth
-- 🤖 Works with multiple LLM providers (Gemini, OpenAI, Anthropic)
+- 🤖 Works with multiple LLM providers (Gemini, OpenAI, Anthropic, Ollama)
 
 ## Setup
 
